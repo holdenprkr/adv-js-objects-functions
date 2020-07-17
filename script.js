@@ -171,16 +171,14 @@ game();
   console.log(score >= 5 - goodLuck);
 })(5);
 
-
-
 // Closures
 
 function retirement(retirementAge) {
-  var a = ' years left until retirement.';
-  return function(yearOfBirth) {
+  var a = " years left until retirement.";
+  return function (yearOfBirth) {
     var age = 2020 - yearOfBirth;
-    console.log((retirementAge - age) + a)
-  }
+    console.log(retirementAge - age + a);
+  };
 }
 
 var retirementUS = retirement(66);
@@ -199,17 +197,191 @@ function interview(job) {
   return function (name) {
     switch (job) {
       case "designer":
-        console.log(name + ", can you please explain what UX design is?")
+        console.log(name + ", can you please explain what UX design is?");
         break;
       case "teacher":
         console.log("What subject do you teach, " + name + "?");
         break;
       default:
-        console.log("Hello " + name + ", what do you do?")
+        console.log("Hello " + name + ", what do you do?");
     }
-  } 
+  };
 }
 
 interview("designer")("David");
 interview("teacher")("Janis");
 interview("programmer")("Meghan");
+
+// Bind, call, and apply
+
+var bob = {
+  name: "Bob",
+  age: 26,
+  job: "teacher",
+  presentation: function (style, timeOfDay) {
+    if (style === "formal") {
+      console.log(
+        "Good " +
+          timeOfDay +
+          ", ladies and gentlement! I'm " +
+          this.name +
+          ", I'm a " +
+          this.job +
+          " and I'm " +
+          this.age
+      );
+    } else if (style === "friendly") {
+      console.log(
+        "Hey! What's up? I'm " +
+          this.name +
+          ", I'm a " +
+          this.job +
+          " and I'm " +
+          this.age +
+          " years old. Have a nice " +
+          timeOfDay +
+          "."
+      );
+    }
+  },
+};
+
+var emily = {
+  name: 'Emily',
+  age: 35,
+  job: 'designer'
+}
+
+bob.presentation('formal', 'morning');
+
+bob.presentation.call(emily, 'friendly', 'afternoon')
+
+bob.presentation.apply(emily, ['formal', 'morning'])
+
+var bobFriendly = bob.presentation.bind(bob, 'friendly')
+
+bobFriendly('morning');
+bobFriendly('night');
+
+var emilyFormal = bob.presentation.bind(emily, 'formal');
+
+emilyFormal('evening');
+
+console.clear();
+
+
+// CODING CHALLENGE
+
+// (() => {
+//   var currentScore = 0
+//   while(true) {
+//     var Question = function (question, answers, correctAnswer) {
+//       this.question = question;
+//       this.answers = answers;
+//       this.correctAnswer = correctAnswer;
+//       this.displayQuestion = function() {
+//         console.log(this.question)
+//         for (i = 0; i < this.answers.length; i++) {
+//           console.log(`${i}: ${this.answers[i]}`)
+//         }
+//       }
+//     };
+    
+//     var donaldDuck = new Question("What is the color of Donald Duck’s bowtie?", ["Red", "Yellow", "Blue", "White"], "0")
+//     var olympics = new Question("Which country held the 2016 Summer Olympics?", ["China", "Ireland", "Brazil", "Italy"], "2")
+//     var planet = new Question("Which planet is the hottest?", ["Venus", "Saturn", "Mercury", "Mars"], "0")
+    
+//     var questionArray = [donaldDuck, olympics, planet]
+  
+//     var randomNumber = Math.floor(Math.random() * questionArray.length)
+    
+//     questionArray[randomNumber].displayQuestion();
+
+//     var userAnswer = prompt(questionArray[randomNumber].question + " or type exit to quit");
+//     if (userAnswer == "exit") {
+//       break;
+//     } else {
+//       while (true) {
+//         if (userAnswer !== questionArray[randomNumber].correctAnswer) {
+//           console.log("Try again...")
+//           userAnswer = prompt(questionArray[randomNumber].question);
+//         } else {
+//           currentScore++
+//           console.log(`Correct! Current score: ${currentScore}`)
+//           break;
+//         }
+//       }
+//     }
+//   }
+// })();
+
+(() => {
+  function Question(question, answers, correctAnswer) {
+    this.question = question;
+    this.answers = answers;
+    this.correctAnswer = correctAnswer;
+  }
+  
+  Question.prototype.displayQuestion = function() {
+    console.log(this.question)
+  
+    for (i = 0; i < this.answers.length; i++) {
+      console.log(`${i}: ${this.answers[i]}`)
+    }
+  }
+  
+  Question.prototype.checkAnswer = function(answer, callback) {
+    var sc;
+
+    if (answer === this.correctAnswer) {
+      console.log('Correct answer! :D');
+      sc = callback(true);
+    } else {
+      console.log('Wrong answer. Try again :)');
+      sc = callback(false);
+    }
+
+    this.displayScore(sc);
+  }
+
+  Question.prototype.displayScore = function(score) {
+    console.log(`Your current score is: ${score}`)
+    console.log('--------------------------------------')
+  }
+  
+  var donaldDuck = new Question("What is the color of Donald Duck’s bowtie?", ["Red", "Yellow", "Blue", "White"], 0)
+  var olympics = new Question("Which country held the 2016 Summer Olympics?", ["China", "Ireland", "Brazil", "Italy"], 2)
+  var planet = new Question("Which planet is the hottest?", ["Venus", "Saturn", "Mercury", "Mars"], 0)
+  
+  var questionArray = [donaldDuck, olympics, planet]
+
+  function score() {
+    var sc = 0 ;
+    return function(correct) {
+      if (correct) {
+        sc++;
+      }
+      return sc;
+    }
+  }
+
+  var keepScore = score();
+  
+  function nextQuestion() {
+    
+    var randomNumber = Math.floor(Math.random() * questionArray.length)
+    
+    questionArray[randomNumber].displayQuestion();
+    
+    var userAnswer = prompt("Please select the correct answer or type \"exit\" to quit.");
+    
+    if(userAnswer !== 'exit') {
+      questionArray[randomNumber].checkAnswer(parseInt(userAnswer), keepScore);
+      
+      nextQuestion();
+    }
+  }
+
+  nextQuestion();
+
+})();
